@@ -1,3 +1,15 @@
-# Untitled Game
+# 🚀 Welcome to your new awesome project!
 
-I have no idea what to name this, so I'll just leave it as it is. This will most likely be changed and blogged about later on.
+This project has been created using **webpack scaffold**, you can now run
+
+```
+npm run build
+```
+
+or
+
+```
+yarn build
+```
+
+to bundle your application
