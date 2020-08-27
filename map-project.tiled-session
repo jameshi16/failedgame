@@ -1,0 +1,66 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "src/assets/maps/Test.tmx",
+    "expandedProjectPaths": [
+        "src/assets",
+        "src/assets/maps",
+        "src/assets/tiles"
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "src/assets/maps/Test.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 177.66666666666663,
+                "y": 194.33333333333331
+            }
+        },
+        "src/assets/maps/Test.tmx#Indoor Floor": {
+            "scaleInDock": 1
+        },
+        "src/assets/maps/Test.tmx#Indoor Tiles": {
+            "scaleInDock": 1
+        },
+        "src/assets/maps/Test.tmx#Object Tileset": {
+            "scaleInDock": 1
+        },
+        "src/assets/tiles/Indoor Floor.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 1
+        },
+        "src/assets/tiles/Indoor Tiles.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 3
+        },
+        "src/assets/tiles/Object Tileset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "map.lastUsedExportFilter": "JSON map files (*.json)",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+        "src/assets/maps/Test.tmx",
+        "src/assets/tiles/Object Tileset.tsx",
+        "src/assets/tiles/Indoor Floor.tsx",
+        "src/assets/tiles/Indoor Tiles.tsx"
+    ],
+    "project": "map-project.tiled-project",
+    "recentFiles": [
+        "src/assets/tiles/Indoor Tiles.tsx",
+        "src/assets/tiles/Indoor Floor.tsx",
+        "src/assets/tiles/Object Tileset.tsx",
+        "src/assets/maps/Test.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

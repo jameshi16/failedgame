@@ -55,6 +55,28 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(png|jpe?g|gif)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              limit: 8192
+            }
+          }
+        ]
+      },
+      {
+        type: 'javascript/auto',
+        test: /\.json/,
+        exclude: /(node_modules|bower_components)/,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            limit: 8192
+          }
+        }]
+      },
+      {
         test: /.css$/,
         use: [
           {
