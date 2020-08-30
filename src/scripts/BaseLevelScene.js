@@ -1,36 +1,33 @@
 import Phaser from 'phaser';
+import ResourceManager from './ResourceManager';
 
 /** @typedef {import('../Game')} Game */
 /** @typedef {import('./Resources/Resource').default} Resource */
 
-// @ts-ignore
-import IMGPlayerSprite from '../assets/imgs/player.png';
+const globalResourceManager = new ResourceManager();
 
 /**
  * Class that encapsulates common level elements in the game into one scene.
  * All level-like scenes should extend this class.
- * @implements {Resource}
  */
 export default class BaseLevelScene extends Phaser.Scene {
   /**
    * @param {Game} game
    * @param {string} key
+   * @param {string[]} dependencies Resource keys for dependencies
    */
-  constructor (game, key) {
+  constructor (game, key, dependencies = []) {
     super({ key });
     this.instance = { // NOTE: don't want to affect phaser
       game: game,
       cursors: null,
-      player: null
+      player: null,
+      dependencies: dependencies
     };
   }
 
-  getDependencies () {
-    return null;
-  }
-
   preload () {
-    this.load.spritesheet('player', IMGPlayerSprite, { frameWidth: 64, frameHeight: 64 });
+    globalResourceManager.preloadScene(this, ['player', ...this.instance.dependencies]);
   }
 
   /**
