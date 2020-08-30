@@ -1,5 +1,4 @@
-import Phaser from 'phaser';
-import BaseScene from './BaseScene';
+import BaseLevelScene from './BaseLevelScene';
 
 // @ts-ignore
 import IMGBlankTiles from '../assets/imgs/blank_tile.png';
@@ -10,7 +9,13 @@ import IMGIndoorExtraTiles from '../assets/imgs/16x16extratiles_0.png';
 // @ts-ignore
 import MAPTest from '../assets/compiled_maps/Test.json';
 
-export default class TestLevel extends BaseScene {
+/** @typedef {import('phaser')} Phaser */
+/** @typedef {import('../Game')} Game */
+
+export default class TestLevel extends BaseLevelScene {
+  /**
+   * @param {Game} game
+   */
   constructor (game) {
     super(game, 'TestLevel');
   }
