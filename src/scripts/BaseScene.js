@@ -1,21 +1,9 @@
 import Phaser from 'phaser';
 
-/** @typedef {import('../Game')} Game */
-/** @typedef {import('./Resources/Resource').default} Resource */
-
 // @ts-ignore
 import IMGPlayerSprite from '../assets/imgs/player.png';
 
-/**
- * Class that encapsulates common level elements in the game into one scene.
- * All level-like scenes should extend this class.
- * @implements {Resource}
- */
-export default class BaseLevelScene extends Phaser.Scene {
-  /**
-   * @param {Game} game
-   * @param {string} key
-   */
+export default class BaseScene extends Phaser.Scene {
   constructor (game, key) {
     super({ key });
     this.instance = { // NOTE: don't want to affect phaser
@@ -25,16 +13,12 @@ export default class BaseLevelScene extends Phaser.Scene {
     };
   }
 
-  getDependencies () {
-    return null;
-  }
-
   preload () {
     this.load.spritesheet('player', IMGPlayerSprite, { frameWidth: 64, frameHeight: 64 });
   }
 
   /**
-   * Call preCreate() to draw base objects on the screen (like players)
+     Call preCreate() to draw base objects on the screen (like players)
    */
   preCreate () {
     // Setup player sprite
@@ -74,26 +58,18 @@ export default class BaseLevelScene extends Phaser.Scene {
   }
 
   /**
-   * Call postCreate() to attach hooks, like keyboards and whatnot
-   */
+     Call postCreate() to attach hooks, like keyboards and whatnot
+  */
   postCreate () {
     // Setup keyboard movement
     this.instance.cursors = this.input.keyboard.addKeys('W,S,A,D');
   }
 
-  /**
-   * Call create() to run both preCreate() and postCreate()
-   */
   create () {
     this.preCreate();
     this.postCreate();
   }
 
-  /**
-   * Call create() to run both preCreate() and postCreate()
-   * @param {number} time
-   * @param {delta} delta
-   */
   update (time, delta) {
     /** @type {Object.<string, Phaser.Input.Keyboard.Key>} */
     const cursors = this.instance.cursors;
