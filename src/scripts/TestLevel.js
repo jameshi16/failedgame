@@ -1,8 +1,6 @@
 import BaseScene from './BaseScene';
 
 // @ts-ignore
-import IMGBlankTiles from '../assets/imgs/blank_tile.png';
-// @ts-ignore
 import IMGIndoorTiles from '../assets/imgs/tilesetformattedupdate1.png';
 // @ts-ignore
 import IMGIndoorExtraTiles from '../assets/imgs/16x16extratiles_0.png';
@@ -20,7 +18,6 @@ export default class TestLevel extends BaseScene {
   preload () {
     super.preload();
 
-    this.load.image('blankTile', IMGBlankTiles);
     this.load.image('tile1', IMGIndoorTiles);
     this.load.image('tile2', IMGIndoorExtraTiles);
     this.load.tilemapTiledJSON('test', MAPTest);
@@ -34,6 +31,14 @@ export default class TestLevel extends BaseScene {
     map.createStaticLayer(0, [tileset1, tileset2], 0, 0);
     map.createStaticLayer(1, [tileset1, tileset2], 0, 0);
     map.createStaticLayer(2, [tileset1, tileset2], 0, 0);
+    const collisionLayer = map.createStaticLayer(3, null);
+    /**
+     * @param {number} x
+     * @param {number} y
+     */
+    this.instance.collisionFunction = (x, y) => {
+      return collisionLayer.hasTileAtWorldXY(x, y);
+    };
 
     super.preCreate();
 

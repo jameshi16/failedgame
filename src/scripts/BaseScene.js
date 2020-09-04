@@ -22,6 +22,7 @@ export default class BaseScene extends Phaser.Scene {
     this.instance = { // NOTE: don't want to affect phaser
       game: game,
       gridLock: false,
+      collisionFunction: null,
       movementFunction: null,
       cursors: null,
       player: null
@@ -66,7 +67,8 @@ export default class BaseScene extends Phaser.Scene {
     player.setCollideWorldBounds(true);
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
-    player.setPosition(32, 32);
+    player.setPosition(64, 64);
+    player.setSize(16, 16);
 
     this.anims.create({
       key: 'player_up',
@@ -159,7 +161,28 @@ export default class BaseScene extends Phaser.Scene {
    * @param {number} progressNaturalY What Y naturally would be without gridlock
    */
   updatePosition (player, progressNaturalX, progressNaturalY) {
+    // if player movement results in collision, then we don't move
+    if (this.instance.collisionFunction) {
+      if (
+        (progressNaturalX > player.x && this.instance.collisionFunction(player.x + TILESIZE, player.y + TILESIZE)) ||
+        (progressNaturalX < player.x && this.instance.collisionFunction(player.x + 15 - TILESIZE, player.y + TILESIZE)) ||
+        (progressNaturalY > player.y && this.instance.collisionFunction(player.x, player.y + 16 + TILESIZE)) ||
+        (progressNaturalY < player.y && this.instance.collisionFunction(player.x, player.y + 15))) {
+        this.instance.gridLock = false;
+        return;
+      }
+    }
+
     if (!this.instance.gridLock) {
+      return;
+    }
+
+    // if player movement results in negative coordinates, then we don't move
+    if (progressNaturalX < 0) {
+      return;
+    }
+
+    if (progressNaturalY < 0) {
       return;
     }
 
