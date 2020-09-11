@@ -239,24 +239,32 @@ export default class BinarySearchTree {
             return null;
           }
 
-          if (node.parent.left === node) {
-            node.parent.setLeft(node.right);
-          }
-
-          if (node.parent.right === node) {
-            node.parent.setRight(node.right);
+          if (node.parent) {
+            if (node.parent.left === node) {
+              node.parent.setLeft(node.right);
+            } else {
+              node.parent.setRight(node.right);
+            }
+          } else {
+            node.setValue(node.right.value);
+            node.right.destroy();
+            return node;
           }
 
           const tmp = node.right;
           node.destroy();
           return tmp;
         } else if (node.right === null) {
-          if (node.parent.left === node) {
-            node.parent.setLeft(node.left);
-          }
-
-          if (node.parent.right === node) {
-            node.parent.setRight(node.left);
+          if (node.parent) {
+            if (node.parent.left === node) {
+              node.parent.setLeft(node.left);
+            } else {
+              node.parent.setRight(node.left);
+            }
+          } else {
+            node.setValue(node.left.value);
+            node.left.destroy();
+            return node;
           }
 
           const tmp = node.left;
@@ -271,6 +279,6 @@ export default class BinarySearchTree {
       return node;
     };
 
-    helper(this.rootNode, key);
+    this.rootNode = helper(this.rootNode, key);
   }
 };

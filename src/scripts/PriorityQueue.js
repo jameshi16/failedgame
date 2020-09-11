@@ -100,6 +100,6 @@ export default class PriorityQueue {
         break;
       }
     }
-    return returnValue;
+    return returnValue.obj;
   }
 };
