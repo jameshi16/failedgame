@@ -12,6 +12,13 @@ export default class BinarySearchPriorityQueue {
   }
 
   /**
+   * Gets the length of the queue with hopefully no disparity.
+   */
+  length () {
+    return this.pq.length;
+  }
+
+  /**
    * Queues the value with a certain priority.
    * @param {number} priority
    * @param {string} key
