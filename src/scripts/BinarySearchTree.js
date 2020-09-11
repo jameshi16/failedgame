@@ -2,14 +2,19 @@
  * Node. It's a node (mind-blown)
  */
 class Node {
-  /** @param {any} val */
-  constructor (val = null) {
+  /**
+   * @param {string} key
+   * @param {any} val
+  */
+  constructor (key = null, val = null) {
     /** @private */
     this._parent = null;
     /** @private */
     this._left = null;
     /** @private */
     this._right = null;
+    /** @private */
+    this._key = key;
     /** @private */
     this._value = val;
   }
@@ -51,6 +56,14 @@ class Node {
   }
 
   /**
+   * Sets the key of the node
+   * @param {string} key
+   */
+  setKey (key) {
+    this._key = key;
+  }
+
+  /**
    * Sets the value of the node
    * @param {any} value
    */
@@ -62,6 +75,7 @@ class Node {
    * Removes all associations (and value) of the node
    */
   destroy () {
+    this._key = null;
     this._value = null;
     this._right = null;
     this._left = null;
@@ -102,6 +116,14 @@ class Node {
   }
 
   /**
+   * Gets the key to this node.
+   * @returns {string}
+   */
+  get key () {
+    return this._key;
+  }
+
+  /**
    * Gets the value of this node.
    * @returns {any}
    */
@@ -124,35 +146,37 @@ export default class BinarySearchTree {
    * @param {Node} rhs
    */
   swap (lhs, rhs) {
+    const tempKey = lhs.key;
     const tempVal = lhs.value;
+
+    lhs.setKey(rhs.key);
     lhs.setValue(rhs.value);
+
+    rhs.setKey(tempKey);
     rhs.setValue(tempVal);
   }
 
   /**
-   * Finds out of a value exists
-   * @param {any} val
+   * Finds out of a key exists
+   * @param {any} key
    */
-  exists (val) {
-    return this.search(val) !== null;
+  exists (key) {
+    return this.search(key) !== null;
   }
 
   /**
-   * Searches for a value within the tree
-   * @private
-   * @param {any} val
+   * Searches for a key within the tree
+   * @param {any} key
    * @returns {Node | null}
    */
-  search (val) {
-    const key = String(val);
-
+  search (key) {
     let node = this.rootNode;
     while (node !== null) {
-      if (node.value === key) {
+      if (node.key === key) {
         return node;
-      } else if (key < node.value && node.left !== null) {
+      } else if (key < node.key && node.left !== null) {
         node = node.left;
-      } else if (key > node.value && node.right !== null) {
+      } else if (key > node.key && node.right !== null) {
         node = node.right;
       } else {
         return null;
@@ -163,31 +187,30 @@ export default class BinarySearchTree {
 
   /**
    * Adds a value into the binary search tree.
-   * The comparable key is automatically assumed to be the string form of value
+   * The comparable key is the one that will be used for binary searches. Value is any arbitary data store.
+   * @param {string} key Key to use for binary searches.
    * @param {any} val Value to add to the binary tree. Should be convertable to string
    */
-  add (val) {
-    const key = String(val);
-
+  add (key, val) {
     if (this.rootNode === null) {
-      this.rootNode = new Node(key);
+      this.rootNode = new Node(key, val);
     } else {
       let node = this.rootNode;
       while (node !== null) {
         const leftNode = node.left;
         const rightNode = node.right;
 
-        if (leftNode === null && key < node.value) {
-          node.setLeft(new Node(key));
+        if (leftNode === null && key < node.key) {
+          node.setLeft(new Node(key, val));
           break;
-        } else if (rightNode === null && key >= node.value) {
-          node.setRight(new Node(key));
+        } else if (rightNode === null && key >= node.key) {
+          node.setRight(new Node(key, val));
           break;
         }
 
-        if (leftNode && key < node.value) {
+        if (leftNode && key < node.key) {
           node = leftNode;
-        } else if (rightNode && key >= node.value) {
+        } else if (rightNode && key >= node.key) {
           node = rightNode;
         }
       }
@@ -196,15 +219,12 @@ export default class BinarySearchTree {
 
   /**
    * Removes a value from the binary search tree.
-   * Comparable key is a stringified version of the value
-   * @param {any} val Value to remove from the binary tree. Should be convertable to string
+   * @param {string} key Key to remove from the binary tree
    */
-  remove (val) {
+  remove (key) {
     if (this.rootNode === null) {
       return;
     }
-
-    const key = String(val);
 
     /**
      * @param {Node} node
@@ -220,18 +240,18 @@ export default class BinarySearchTree {
 
     /**
      * @param {Node} node
-     * @param {any} value
+     * @param {any} key
      * @returns {Node}
      */
-    const helper = (node, value) => {
+    const helper = (node, key) => {
       if (node === null) {
         return node;
       }
 
-      if (value < node.value) {
-        node.setLeft(helper(node.left, value));
-      } else if (value > node.value) {
-        node.setRight(helper(node.right, value));
+      if (key < node.key) {
+        node.setLeft(helper(node.left, key));
+      } else if (key > node.key) {
+        node.setRight(helper(node.right, key));
       } else {
         if (node.left === null) {
           if (node.right === null) {
@@ -246,6 +266,7 @@ export default class BinarySearchTree {
               node.parent.setRight(node.right);
             }
           } else {
+            node.setKey(node.right.key);
             node.setValue(node.right.value);
             node.right.destroy();
             return node;
@@ -262,6 +283,7 @@ export default class BinarySearchTree {
               node.parent.setRight(node.left);
             }
           } else {
+            node.setKey(node.left.key);
             node.setValue(node.left.value);
             node.left.destroy();
             return node;
@@ -273,8 +295,9 @@ export default class BinarySearchTree {
         }
 
         const temp = lowestNode(node.right);
+        node.setKey(temp.key);
         node.setValue(temp.value);
-        node.setRight(helper(node.right, temp.value));
+        node.setRight(helper(node.right, temp.key));
       }
       return node;
     };

@@ -14,11 +14,12 @@ export default class BinarySearchPriorityQueue {
   /**
    * Queues the value with a certain priority.
    * @param {number} priority
+   * @param {string} key
    * @param {any} val
    */
-  queue (priority, val) {
+  queue (priority, key, val) {
     this.pq.queue(priority, val);
-    this.bst.add(val);
+    this.bst.add(key, val);
   }
 
   /**
@@ -27,14 +28,24 @@ export default class BinarySearchPriorityQueue {
   dequeue () {
     const val = this.pq.dequeue();
     this.bst.remove(val);
+    return val;
   }
 
   /**
-   * Checks for the existence of a value within the queue.
-   * @param {any} val
+   * Checks for the existence of a key within the queue.
+   * @param {string} key
    * @returns {boolean}
    */
-  exists (val) {
-    return this.bst.exists(val);
+  exists (key) {
+    return this.bst.exists(key);
+  }
+
+  /**
+   * Searches for the key within the queue, and returns the value.
+   * @param {string} key
+   * @returns {any | null}
+   */
+  search (key) {
+    return this.bst.search(key)?.value;
   }
 };
