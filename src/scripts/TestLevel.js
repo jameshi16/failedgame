@@ -17,6 +17,7 @@ export default class TestLevel extends BaseScene {
     super(game, 'TestLevel');
     this.instance = {
       ...this.instance,
+      enemy: null,
       map: null,
       collisionLayer: null,
       navDone: false
@@ -50,6 +51,44 @@ export default class TestLevel extends BaseScene {
 
     super.preCreate();
 
+    const enemy = this.physics.add.sprite(0, 0, 'player');
+    this.instance.enemy = enemy;
+
+    enemy.setCollideWorldBounds(true);
+    enemy.setScale(0.5);
+    enemy.setOrigin(0.25, 0.125);
+    enemy.setPosition(23 * 16, 13 * 16); // set position in tile x and y
+    enemy.setSize(16, 16);
+    enemy.setTint(0xff0000); // red tint because red === bad guy
+
+    this.anims.create({
+      key: 'enemy_up',
+      frames: this.anims.generateFrameNumbers('player', { start: 104, end: 112 }),
+      frameRate: 13,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'enemy_left',
+      frames: this.anims.generateFrameNumbers('player', { start: 117, end: 125 }),
+      frameRate: 13,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'enemy_down',
+      frames: this.anims.generateFrameNumbers('player', { start: 130, end: 138 }),
+      frameRate: 13,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'enemy_right',
+      frames: this.anims.generateFrameNumbers('player', { start: 143, end: 151 }),
+      frameRate: 13,
+      repeat: -1
+    });
+
     const camera = this.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true);
     camera.setZoom(2.0);
@@ -68,7 +107,9 @@ export default class TestLevel extends BaseScene {
   update (time, delta) {
     super.update(time, delta);
 
-    if (!this.instance.gridLock && !this.instance.navDone) {
+    if (!this.instance.gridLock.get('enemy') && !this.instance.navDone) {
+      /** @type {Phaser.Physics.Arcade.Sprite} */
+      const enemy = this.instance.enemy;
       /** @type {Phaser.Physics.Arcade.Sprite} */
       const player = this.instance.player;
       /** @type {Phaser.Tilemaps.Tilemap} */
@@ -79,22 +120,23 @@ export default class TestLevel extends BaseScene {
       // get all tiles within the world
       const collide = collisionLayer.getTilesWithinWorldXY(0, 0, map.width * 16, map.height * 16)
         .filter(tile => tile.index === 113).map(tile => ({ x: tile.x, y: tile.y }));
+      const tileEnemyPos = map.worldToTileXY(enemy.x, enemy.y);
       const tilePlayerPos = map.worldToTileXY(player.x, player.y);
       const boundryPos = map.worldToTileXY(map.width * 16, map.height * 16);
-      const astar = AStar(collide, tilePlayerPos, { x: 23, y: 13 }, { x: boundryPos.x, y: boundryPos.y });
+      const astar = AStar(collide, tileEnemyPos, tilePlayerPos, { x: boundryPos.x, y: boundryPos.y });
 
       const nextPos = astar.length > 1 ? astar[1] : (astar.length === 0 ? astar[0] : null);
       if (nextPos) {
-        if (tilePlayerPos.x > nextPos.x) {
-          this.gridLockMovement(delta, player, 'left', 'player');
-        } else if (tilePlayerPos.x < nextPos.x) {
-          this.gridLockMovement(delta, player, 'right', 'player');
-        } else if (tilePlayerPos.y > nextPos.y) {
-          this.gridLockMovement(delta, player, 'up', 'player');
-        } else if (tilePlayerPos.y < nextPos.y) {
-          this.gridLockMovement(delta, player, 'down', 'player');
+        if (tileEnemyPos.x > nextPos.x) {
+          this.gridLockMovement(delta, enemy, 'left', 'enemy');
+        } else if (tileEnemyPos.x < nextPos.x) {
+          this.gridLockMovement(delta, enemy, 'right', 'enemy');
+        } else if (tileEnemyPos.y > nextPos.y) {
+          this.gridLockMovement(delta, enemy, 'up', 'enemy');
+        } else if (tileEnemyPos.y < nextPos.y) {
+          this.gridLockMovement(delta, enemy, 'down', 'enemy');
         } else {
-          this.gridLockMovement(delta, player, null, 'player');
+          this.gridLockMovement(delta, enemy, null, 'enemy');
           this.instance.navDone = true;
         }
       }

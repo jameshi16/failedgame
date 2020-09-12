@@ -21,7 +21,7 @@ export default class BaseScene extends Phaser.Scene {
     super({ key });
     this.instance = { // NOTE: don't want to affect phaser
       game: game,
-      gridLock: false,
+      gridLock: new Map([]),
       collisionFunction: null,
       movementFunction: new Map([]),
       cursors: null,
@@ -113,7 +113,7 @@ export default class BaseScene extends Phaser.Scene {
    * @param {Phaser.Physics.Arcade.Sprite} player
    */
   updateKeyboard (delta, cursors, player) {
-    if (this.instance.gridLock) {
+    if (this.instance.gridLock.get('player')) {
       return;
     }
 
@@ -141,30 +141,30 @@ export default class BaseScene extends Phaser.Scene {
    * @param {string} key
    */
   gridLockMovement (delta, sprite, direction, key) {
-    if (this.instance.gridLock) {
+    if (this.instance.gridLock.get(key)) {
       return;
     }
 
     if (direction === 'up') {
       sprite.anims.play(`${key}_up`, true);
-      this.instance.gridLock = true;
+      this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
-        this.updatePosition(sprite, sprite.x, sprite.y - ((delta / 1000) * TILEMOVEMENT)));
+        this.updatePosition(sprite, key, sprite.x, sprite.y - ((delta / 1000) * TILEMOVEMENT)));
     } else if (direction === 'down') {
       sprite.anims.play(`${key}_down`, true);
-      this.instance.gridLock = true;
+      this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
-        this.updatePosition(sprite, sprite.x, sprite.y + ((delta / 1000) * TILEMOVEMENT)));
+        this.updatePosition(sprite, key, sprite.x, sprite.y + ((delta / 1000) * TILEMOVEMENT)));
     } else if (direction === 'left') {
       sprite.anims.play(`${key}_left`, true);
-      this.instance.gridLock = true;
+      this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
-        this.updatePosition(sprite, sprite.x - ((delta / 1000) * TILEMOVEMENT), sprite.y));
+        this.updatePosition(sprite, key, sprite.x - ((delta / 1000) * TILEMOVEMENT), sprite.y));
     } else if (direction === 'right') {
       sprite.anims.play(`${key}_right`, true);
-      this.instance.gridLock = true;
+      this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
-        this.updatePosition(sprite, sprite.x + ((delta / 1000) * TILEMOVEMENT), sprite.y));
+        this.updatePosition(sprite, key, sprite.x + ((delta / 1000) * TILEMOVEMENT), sprite.y));
     } else {
       // NOTE: causes the animation to stop in the first frame
       if (sprite.anims.isPlaying) {
@@ -179,10 +179,11 @@ export default class BaseScene extends Phaser.Scene {
    * Updates the position of the player based on time and delta. Implements gridlock
    * @private
    * @param {Phaser.Physics.Arcade.Sprite} player
+   * @param {string} key
    * @param {number} progressNaturalX What X naturally would be without gridlock
    * @param {number} progressNaturalY What Y naturally would be without gridlock
    */
-  updatePosition (player, progressNaturalX, progressNaturalY) {
+  updatePosition (player, key, progressNaturalX, progressNaturalY) {
     // if player movement results in collision, then we don't move
     if (this.instance.collisionFunction) {
       if (
@@ -190,12 +191,12 @@ export default class BaseScene extends Phaser.Scene {
         (progressNaturalX < player.x && this.instance.collisionFunction(player.x + 15 - TILESIZE, player.y + TILESIZE)) ||
         (progressNaturalY > player.y && this.instance.collisionFunction(player.x, player.y + 16 + TILESIZE)) ||
         (progressNaturalY < player.y && this.instance.collisionFunction(player.x, player.y + 15))) {
-        this.instance.gridLock = false;
+        this.instance.gridLock.delete(key);
         return;
       }
     }
 
-    if (!this.instance.gridLock) {
+    if (!this.instance.gridLock.get(key)) {
       return;
     }
 
@@ -214,24 +215,24 @@ export default class BaseScene extends Phaser.Scene {
     const tileCeilDifferenceX = Math.ceil(progressNaturalX / TILESIZE) - Math.ceil(player.x / TILESIZE);
     if (tileFloorDifferenceX >= 1) {
       player.x = Math.floor(progressNaturalX / TILESIZE) * TILESIZE;
-      this.instance.gridLock = false;
+      this.instance.gridLock.delete(key);
     }
 
     if (tileCeilDifferenceX <= -1) {
       player.x = Math.ceil(progressNaturalX / TILESIZE) * TILESIZE;
-      this.instance.gridLock = false;
+      this.instance.gridLock.delete(key);
     }
 
     const tileFloorDifferenceY = Math.floor(progressNaturalY / TILESIZE) - Math.floor(player.y / TILESIZE);
     const tileCeilDifferenceY = Math.ceil(progressNaturalY / TILESIZE) - Math.ceil(player.y / TILESIZE);
     if (tileFloorDifferenceY >= 1) {
       player.y = Math.floor(progressNaturalY / TILESIZE) * TILESIZE;
-      this.instance.gridLock = false;
+      this.instance.gridLock.delete(key);
     }
 
     if (tileCeilDifferenceY <= -1) {
       player.y = Math.ceil(progressNaturalY / TILESIZE) * TILESIZE;
-      this.instance.gridLock = false;
+      this.instance.gridLock.delete(key);
     }
 
     if (this.instance.gridLock) {
