@@ -23,7 +23,7 @@ export default class BaseScene extends Phaser.Scene {
       game: game,
       gridLock: false,
       collisionFunction: null,
-      movementFunction: null,
+      movementFunction: new Map([]),
       cursors: null,
       player: null
     };
@@ -49,10 +49,8 @@ export default class BaseScene extends Phaser.Scene {
     /** @type {Phaser.Physics.Arcade.Sprite} */
     const player = this.instance.player;
 
-    this.updateKeyboard(time, delta, cursors, player);
-    if (this.instance.movementFunction) {
-      this.instance.movementFunction();
-    }
+    this.updateKeyboard(delta, cursors, player);
+    this.instance.movementFunction.forEach(value => value());
   }
 
   /* Own functions */
@@ -110,12 +108,11 @@ export default class BaseScene extends Phaser.Scene {
   /**
    * Updates keyboard
    * @private
-   * @param {number} time
    * @param {number} delta
    * @param {Object<string, Phaser.Input.Keyboard.Key>} cursors
    * @param {Phaser.Physics.Arcade.Sprite} player
    */
-  updateKeyboard (time, delta, cursors, player) {
+  updateKeyboard (delta, cursors, player) {
     if (this.instance.gridLock) {
       return;
     }
@@ -124,32 +121,57 @@ export default class BaseScene extends Phaser.Scene {
     // fine control over the x and y positions (they must be multiples of 16)
     // without the glitching that comes from teleporting the sprite to the right place
     if (cursors.W.isDown) {
-      player.anims.play('player_up', true);
-      this.instance.gridLock = true;
-      this.instance.movementFunction = () =>
-        this.updatePosition(player, player.x, player.y - ((delta / 1000) * TILEMOVEMENT));
+      this.gridLockMovement(delta, player, 'up', 'player');
     } else if (cursors.S.isDown) {
-      player.anims.play('player_down', true);
-      this.instance.gridLock = true;
-      this.instance.movementFunction = () =>
-        this.updatePosition(player, player.x, player.y + ((delta / 1000) * TILEMOVEMENT));
+      this.gridLockMovement(delta, player, 'down', 'player');
     } else if (cursors.A.isDown) {
-      player.anims.play('player_left', true);
-      this.instance.gridLock = true;
-      this.instance.movementFunction = () =>
-        this.updatePosition(player, player.x - ((delta / 1000) * TILEMOVEMENT), player.y);
+      this.gridLockMovement(delta, player, 'left', 'player');
     } else if (cursors.D.isDown) {
-      player.anims.play('player_right', true);
+      this.gridLockMovement(delta, player, 'right', 'player');
+    } else {
+      this.gridLockMovement(delta, player, null, 'player');
+    }
+  }
+
+  /**
+   * Moves the sprite using GridLock.
+   * @param {number} delta
+   * @param {Phaser.Physics.Arcade.Sprite} sprite
+   * @param {'up' | 'left' | 'down' | 'right' | null} direction
+   * @param {string} key
+   */
+  gridLockMovement (delta, sprite, direction, key) {
+    if (this.instance.gridLock) {
+      return;
+    }
+
+    if (direction === 'up') {
+      sprite.anims.play(`${key}_up`, true);
       this.instance.gridLock = true;
-      this.instance.movementFunction = () =>
-        this.updatePosition(player, player.x + ((delta / 1000) * TILEMOVEMENT), player.y);
+      this.instance.movementFunction.set(key, () =>
+        this.updatePosition(sprite, sprite.x, sprite.y - ((delta / 1000) * TILEMOVEMENT)));
+    } else if (direction === 'down') {
+      sprite.anims.play(`${key}_down`, true);
+      this.instance.gridLock = true;
+      this.instance.movementFunction.set(key, () =>
+        this.updatePosition(sprite, sprite.x, sprite.y + ((delta / 1000) * TILEMOVEMENT)));
+    } else if (direction === 'left') {
+      sprite.anims.play(`${key}_left`, true);
+      this.instance.gridLock = true;
+      this.instance.movementFunction.set(key, () =>
+        this.updatePosition(sprite, sprite.x - ((delta / 1000) * TILEMOVEMENT), sprite.y));
+    } else if (direction === 'right') {
+      sprite.anims.play(`${key}_right`, true);
+      this.instance.gridLock = true;
+      this.instance.movementFunction.set(key, () =>
+        this.updatePosition(sprite, sprite.x + ((delta / 1000) * TILEMOVEMENT), sprite.y));
     } else {
       // NOTE: causes the animation to stop in the first frame
-      if (player.anims.isPlaying) {
-        player.anims.restart();
+      if (sprite.anims.isPlaying) {
+        sprite.anims.restart();
       }
-      player.anims.stop();
-      this.instance.movementFunction = null;
+      sprite.anims.stop();
+      this.instance.movementFunction.delete(key);
     }
   }
 
