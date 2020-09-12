@@ -56,7 +56,7 @@ function successors (blocked, coord, bounding) {
   // 1) negative coordinates
   // 2) inside the blocked list
   return templateSuccessors.filter(successor => {
-    return (successor.x > 0 && successor.y > 0) &&
+    return (successor.x >= 0 && successor.y >= 0) &&
       (successor.x <= bounding.x && successor.y <= bounding.y) &&
       !blocked.exists(makeKey(successor));
   });
@@ -74,6 +74,10 @@ function AStar (blocked, source, destination, bounding) {
   const open = new BinarySearchPriorityQueue();
   const closed = new BinarySearchPriorityQueue();
   const blockedBST = new BinarySearchTree();
+
+  if (source.x === destination.x && source.y === destination.y) {
+    return [];
+  }
 
   open.queue(0, makeKey(source), {
     coords: source,
@@ -145,7 +149,7 @@ function AStar (blocked, source, destination, bounding) {
   const path = [];
   /** @type {Node} */
   let node = foundNode;
-  while (node.parent) {
+  while (node && node.parent) {
     path.push(node.coords);
     node = node.parent;
   }

@@ -20,6 +20,7 @@ export default class TestLevel extends BaseScene {
       enemy: null,
       map: null,
       collisionLayer: null,
+      drawPathFireOnce: false,
       navDone: false
     };
   }
@@ -120,25 +121,34 @@ export default class TestLevel extends BaseScene {
       // get all tiles within the world
       const collide = collisionLayer.getTilesWithinWorldXY(0, 0, map.width * 16, map.height * 16)
         .filter(tile => tile.index === 113).map(tile => ({ x: tile.x, y: tile.y }));
-      const tileEnemyPos = map.worldToTileXY(enemy.x, enemy.y);
-      const tilePlayerPos = map.worldToTileXY(player.x, player.y);
+      const tileEnemyPos = map.worldToTileXY(enemy.x, enemy.y + 16);
+      const tilePlayerPos = map.worldToTileXY(player.x, player.y + 16);
       const boundryPos = map.worldToTileXY(map.width * 16, map.height * 16);
       const astar = AStar(collide, tileEnemyPos, tilePlayerPos, { x: boundryPos.x, y: boundryPos.y });
+      if (!this.instance.drawPathFireOnce) {
+        this.instance.drawPathFireOnce = true;
+        this.add.circle(tilePlayerPos.x * 16 + 8, tilePlayerPos.y * 16 + 8, 16, 0x0000ff);
+        this.add.circle(tileEnemyPos.x * 16 + 8, tileEnemyPos.y * 16 + 8, 16, 0x00ff00);
+        astar.forEach(pos => {
+          this.add.circle(pos.x * 16 + 8, pos.y * 16 + 8, 8, 0xff00000);
+        });
+      }
 
-      const nextPos = astar.length > 1 ? astar[1] : (astar.length === 0 ? astar[0] : null);
+      const nextPos = astar.length > 0 ? astar[0] : null;
       if (nextPos) {
-        if (tileEnemyPos.x > nextPos.x) {
+        const xDiffGreater = Math.abs(tileEnemyPos.x - nextPos.x) > Math.abs(tileEnemyPos.y - nextPos.y);
+        if (tileEnemyPos.x > nextPos.x && xDiffGreater) {
           this.gridLockMovement(delta, enemy, 'left', 'enemy');
-        } else if (tileEnemyPos.x < nextPos.x) {
+        } else if (tileEnemyPos.x < nextPos.x && xDiffGreater) {
           this.gridLockMovement(delta, enemy, 'right', 'enemy');
-        } else if (tileEnemyPos.y > nextPos.y) {
+        } else if (tileEnemyPos.y > nextPos.y && !xDiffGreater) {
           this.gridLockMovement(delta, enemy, 'up', 'enemy');
-        } else if (tileEnemyPos.y < nextPos.y) {
+        } else if (tileEnemyPos.y < nextPos.y && !xDiffGreater) {
           this.gridLockMovement(delta, enemy, 'down', 'enemy');
-        } else {
-          this.gridLockMovement(delta, enemy, null, 'enemy');
-          this.instance.navDone = true;
         }
+      } else {
+        this.gridLockMovement(delta, enemy, null, 'enemy');
+        this.instance.navDone = true;
       }
     }
   }

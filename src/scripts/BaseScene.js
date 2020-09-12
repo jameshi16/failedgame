@@ -65,7 +65,7 @@ export default class BaseScene extends Phaser.Scene {
     player.setCollideWorldBounds(true);
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
-    player.setPosition(64, 64);
+    player.setPosition(16 * 13, 16 * 3);
     player.setSize(16, 16);
 
     this.anims.create({
@@ -176,21 +176,21 @@ export default class BaseScene extends Phaser.Scene {
   }
 
   /**
-   * Updates the position of the player based on time and delta. Implements gridlock
+   * Updates the position of the sprite based on time and delta. Implements gridlock
    * @private
-   * @param {Phaser.Physics.Arcade.Sprite} player
+   * @param {Phaser.Physics.Arcade.Sprite} sprite
    * @param {string} key
    * @param {number} progressNaturalX What X naturally would be without gridlock
    * @param {number} progressNaturalY What Y naturally would be without gridlock
    */
-  updatePosition (player, key, progressNaturalX, progressNaturalY) {
-    // if player movement results in collision, then we don't move
+  updatePosition (sprite, key, progressNaturalX, progressNaturalY) {
+    // if sprite movement results in collision, then we don't move
     if (this.instance.collisionFunction) {
       if (
-        (progressNaturalX > player.x && this.instance.collisionFunction(player.x + TILESIZE, player.y + TILESIZE)) ||
-        (progressNaturalX < player.x && this.instance.collisionFunction(player.x + 15 - TILESIZE, player.y + TILESIZE)) ||
-        (progressNaturalY > player.y && this.instance.collisionFunction(player.x, player.y + 16 + TILESIZE)) ||
-        (progressNaturalY < player.y && this.instance.collisionFunction(player.x, player.y + 15))) {
+        (progressNaturalX > sprite.x && this.instance.collisionFunction(sprite.x + TILESIZE, sprite.y + TILESIZE)) ||
+        (progressNaturalX < sprite.x && this.instance.collisionFunction(sprite.x + 15 - TILESIZE, sprite.y + TILESIZE)) ||
+        (progressNaturalY > sprite.y && this.instance.collisionFunction(sprite.x, sprite.y + 16 + TILESIZE)) ||
+        (progressNaturalY < sprite.y && this.instance.collisionFunction(sprite.x, sprite.y + 15))) {
         this.instance.gridLock.delete(key);
         return;
       }
@@ -200,7 +200,7 @@ export default class BaseScene extends Phaser.Scene {
       return;
     }
 
-    // if player movement results in negative coordinates, then we don't move
+    // if sprite movement results in negative coordinates, then we don't move
     if (progressNaturalX < 0) {
       return;
     }
@@ -211,33 +211,33 @@ export default class BaseScene extends Phaser.Scene {
 
     // ensure crossing tiles are done discretely
     // crossing tiles will also unlock gridLock for a moment
-    const tileFloorDifferenceX = Math.floor(progressNaturalX / TILESIZE) - Math.floor(player.x / TILESIZE);
-    const tileCeilDifferenceX = Math.ceil(progressNaturalX / TILESIZE) - Math.ceil(player.x / TILESIZE);
+    const tileFloorDifferenceX = Math.floor(progressNaturalX / TILESIZE) - Math.floor(sprite.x / TILESIZE);
+    const tileCeilDifferenceX = Math.ceil(progressNaturalX / TILESIZE) - Math.ceil(sprite.x / TILESIZE);
     if (tileFloorDifferenceX >= 1) {
-      player.x = Math.floor(progressNaturalX / TILESIZE) * TILESIZE;
+      sprite.x = Math.floor(progressNaturalX / TILESIZE) * TILESIZE;
       this.instance.gridLock.delete(key);
     }
 
     if (tileCeilDifferenceX <= -1) {
-      player.x = Math.ceil(progressNaturalX / TILESIZE) * TILESIZE;
+      sprite.x = Math.ceil(progressNaturalX / TILESIZE) * TILESIZE;
       this.instance.gridLock.delete(key);
     }
 
-    const tileFloorDifferenceY = Math.floor(progressNaturalY / TILESIZE) - Math.floor(player.y / TILESIZE);
-    const tileCeilDifferenceY = Math.ceil(progressNaturalY / TILESIZE) - Math.ceil(player.y / TILESIZE);
+    const tileFloorDifferenceY = Math.floor(progressNaturalY / TILESIZE) - Math.floor(sprite.y / TILESIZE);
+    const tileCeilDifferenceY = Math.ceil(progressNaturalY / TILESIZE) - Math.ceil(sprite.y / TILESIZE);
     if (tileFloorDifferenceY >= 1) {
-      player.y = Math.floor(progressNaturalY / TILESIZE) * TILESIZE;
+      sprite.y = Math.floor(progressNaturalY / TILESIZE) * TILESIZE;
       this.instance.gridLock.delete(key);
     }
 
     if (tileCeilDifferenceY <= -1) {
-      player.y = Math.ceil(progressNaturalY / TILESIZE) * TILESIZE;
+      sprite.y = Math.ceil(progressNaturalY / TILESIZE) * TILESIZE;
       this.instance.gridLock.delete(key);
     }
 
-    if (this.instance.gridLock) {
-      player.x = progressNaturalX;
-      player.y = progressNaturalY;
+    if (this.instance.gridLock.get(key)) {
+      sprite.x = progressNaturalX;
+      sprite.y = progressNaturalY;
     }
   }
 }
