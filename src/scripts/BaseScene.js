@@ -62,7 +62,7 @@ export default class BaseScene extends Phaser.Scene {
     const player = this.physics.add.sprite(0, 0, 'player');
     this.instance.player = player;
 
-    player.setCollideWorldBounds(true);
+    player.setCollideWorldBounds(false);
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
     player.setPosition(16 * 13, 16 * 3);

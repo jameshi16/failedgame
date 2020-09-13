@@ -1,18 +1,19 @@
 import Phaser from 'phaser';
 
-import TestLevel from './scripts/TestLevel';
+import City from './scripts/City';
 
 export default class Game {
   constructor () {
     // const self = this;
     this.gameConfig = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 600,
+      width: 400,
+      height: 300,
       physics: {
         default: 'arcade'
       },
-      scene: [new TestLevel(this)]
+      zoom: 2,
+      scene: [new City(this)]
     };
     this.game = new Phaser.Game(this.gameConfig);
   }
