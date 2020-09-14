@@ -9,7 +9,10 @@ export default class Game {
       width: 400,
       height: 300,
       physics: {
-        default: 'arcade'
+        default: 'arcade',
+        arcade: {
+          debug: true
+        }
       },
       zoom: 2,
       scene: [new City(this)]
