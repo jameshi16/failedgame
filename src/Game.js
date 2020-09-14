@@ -4,7 +4,6 @@ import City from './scripts/City';
 
 export default class Game {
   constructor () {
-    // const self = this;
     this.gameConfig = {
       type: Phaser.AUTO,
       width: 400,

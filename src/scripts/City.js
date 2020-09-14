@@ -69,7 +69,10 @@ export default class TestLevel extends BaseScene {
       .forEach(tile => {
         if (tile) {
           const playerSpawnpoint = map.tileToWorldXY(tile.x, tile.y);
-          player.setPosition(playerSpawnpoint.x, playerSpawnpoint.y);
+          // offset player position, feet is where x and y really matters
+          player.setPosition(playerSpawnpoint.x, playerSpawnpoint.y - 16);
+          player.anims.play('player_left', true);
+          player.anims.stop();
         }
       });
 
