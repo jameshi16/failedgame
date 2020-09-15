@@ -6,15 +6,15 @@ export default class Game {
   constructor () {
     this.gameConfig = {
       type: Phaser.AUTO,
-      width: 400,
-      height: 300,
+      width: 800,
+      height: 600,
       physics: {
         default: 'arcade',
         arcade: {
-          debug: true
+          debug: false
         }
       },
-      zoom: 2,
+      zoom: 1,
       scene: [new City(this)]
     };
     this.game = new Phaser.Game(this.gameConfig);

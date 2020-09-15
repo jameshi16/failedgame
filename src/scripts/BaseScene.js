@@ -24,7 +24,9 @@ export default class BaseScene extends Phaser.Scene {
       gridLock: new Map([]),
       collisionFunction: null,
       movementFunction: new Map([]),
+      movementDisabled: 0,
       cursors: null,
+      mouse: null,
       player: null
     };
   }
@@ -66,6 +68,7 @@ export default class BaseScene extends Phaser.Scene {
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
     player.setPosition(16 * 13, 16 * 3);
+    player.setSize(32, 54);
 
     this.anims.create({
       key: 'player_up',
@@ -94,6 +97,34 @@ export default class BaseScene extends Phaser.Scene {
       frameRate: 13,
       repeat: -1
     });
+
+    this.anims.create({
+      key: 'player_up_slash',
+      frames: this.anims.generateFrameNumbers('player', { start: 156, end: 161 }),
+      frameRate: 26,
+      repeat: 0
+    });
+
+    this.anims.create({
+      key: 'player_left_slash',
+      frames: this.anims.generateFrameNumbers('player', { start: 169, end: 174 }),
+      frameRate: 26,
+      repeat: 0
+    });
+
+    this.anims.create({
+      key: 'player_down_slash',
+      frames: this.anims.generateFrameNumbers('player', { start: 182, end: 187 }),
+      frameRate: 26,
+      repeat: 0
+    });
+
+    this.anims.create({
+      key: 'player_right_slash',
+      frames: this.anims.generateFrameNumbers('player', { start: 195, end: 200 }),
+      frameRate: 26,
+      repeat: 0
+    });
   }
 
   /**
@@ -102,6 +133,48 @@ export default class BaseScene extends Phaser.Scene {
   postCreate () {
     // Setup keyboard movement
     this.instance.cursors = this.input.keyboard.addKeys('W,S,A,D');
+
+    // Setup mouse
+    this.instance.mouse = this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
+      /** @type {Phaser.Physics.Arcade.Sprite} */
+      const player = this.instance.player;
+      const direction = this.getDirectionFromAnimationKey(player.anims.getCurrentKey());
+      if (this.input.activePointer.leftButtonDown()) {
+        this.leftClick(direction);
+      } else if (this.input.activePointer.rightButtonDown()) {
+        // TODO: do bow things
+      }
+    });
+  }
+
+  /**
+   * Called when left clicked. Attacking animation already done by BaseScene
+   * @param {'left' | 'right' | 'up' | 'down'} direction
+   */
+  leftClick (direction) {
+    /** @type {Phaser.Physics.Arcade.Sprite} */
+    const player = this.instance.player;
+    this.instance.movementDisabled = 200;
+    player.anims.play(`player_${direction}_slash`);
+  }
+
+  /**
+   * @private
+   * @param {string} key
+   * @returns {'left' | 'up' | 'down' | 'right' | null}
+   */
+  getDirectionFromAnimationKey (key) {
+    if (key.search(/left/g) !== -1) {
+      return 'left';
+    } else if (key.search(/up/g) !== -1) {
+      return 'up';
+    } else if (key.search(/down/g) !== -1) {
+      return 'down';
+    } else if (key.search(/right/g) !== -1) {
+      return 'right';
+    }
+
+    return null;
   }
 
   /**
@@ -112,6 +185,11 @@ export default class BaseScene extends Phaser.Scene {
    * @param {Phaser.Physics.Arcade.Sprite} player
    */
   updateKeyboard (delta, cursors, player) {
+    if (this.instance.movementDisabled > 0) {
+      this.instance.movementDisabled = Math.max(0, this.instance.movementDisabled - delta);
+      return;
+    }
+
     if (this.instance.gridLock.get('player')) {
       return;
     }

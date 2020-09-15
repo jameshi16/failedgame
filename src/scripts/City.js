@@ -18,13 +18,30 @@ import AStar from './AStar/AStar';
 
 /** @typedef {import('../Game').default} Game */
 
+const OPPOSITE_DIRECTION = {
+  left: 'right',
+  up: 'down',
+  right: 'left',
+  down: 'up'
+};
+
+// copied from https://stackoverflow.com/a/2117523
+// good enough for my usage
+function uuidv4 () {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    /* eslint-disable one-var */
+    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export default class TestLevel extends BaseScene {
   /** @param {Game} game */
   constructor (game) {
     super(game, 'TestLevel');
     this.instance = {
       ...this.instance,
-      enemies: [],
+      enemies: null,
       projectiles: null,
       map: null,
       collisionLayer: null
@@ -67,7 +84,10 @@ export default class TestLevel extends BaseScene {
     };
 
     super.preCreate();
+    /** @type {Phaser.Physics.Arcade.Sprite} */
     const player = this.instance.player;
+    player.setData('health', 20);
+    player.setData('stamina', 200);
 
     // register animations & spawn enemies
     this.anims.create({
@@ -126,6 +146,7 @@ export default class TestLevel extends BaseScene {
       repeat: -1
     });
 
+    this.instance.enemies = this.physics.add.group();
     enemySpawnpoints
       .getTilesWithinWorldXY(0, 0, map.widthInPixels, map.heightInPixels, { isNotEmpty: true })
       .forEach(tile => {
@@ -137,7 +158,7 @@ export default class TestLevel extends BaseScene {
         skeleton.setScale(0.5);
         skeleton.setOrigin(0.25, 0.125);
 
-        this.instance.enemies.push(skeleton);
+        this.instance.enemies.add(skeleton);
       });
 
     // spawn the player
@@ -157,6 +178,7 @@ export default class TestLevel extends BaseScene {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true);
     camera.startFollow(this.instance.player);
+    camera.setZoom(2.0);
 
     // projectiles preparation
     this.instance.projectiles = this.physics.add.group();
@@ -165,10 +187,6 @@ export default class TestLevel extends BaseScene {
 
     this.instance.map = map;
     this.instance.collisionLayer = collisionLayer;
-
-    this.physics.world.on(Phaser.Physics.Arcade.Events.WORLD_BOUNDS, () => {
-      console.log('test');
-    });
   }
 
   /**
@@ -192,7 +210,24 @@ export default class TestLevel extends BaseScene {
     const tilePlayerPos = map.worldToTileXY(player.x, player.y + 16);
     const boundryPos = map.worldToTileXY(map.widthInPixels, map.heightInPixels);
 
+    // regenerate stamina
+    const playerStamina = player.getData('stamina');
+    player.setData('stamina', Math.min(200, playerStamina + 0.1));
+
     this.physics.overlap(player, projectiles, (_, projectile) => {
+      const projectileDirection = projectile.getData('direction');
+      const playerDirection = player.getData('projectile_invincibility_direction');
+
+      if (OPPOSITE_DIRECTION[playerDirection] === projectileDirection) {
+        // TODO: parry!
+      } else {
+        const playerHP = player.getData('health');
+        if (playerHP > 1) {
+          player.setData('health', playerHP - 1);
+        } else {
+          // TODO: should be dead
+        }
+      }
       projectiles.remove(projectile, true, true);
     });
 
@@ -206,14 +241,35 @@ export default class TestLevel extends BaseScene {
       }
     });
 
-    this.instance.enemies.forEach((e, index) => {
+    // accept projectile invincibility frames
+    const playerProjectileInvincibilityDuration = player.getData('projectile_invincibility_duration');
+    if (playerProjectileInvincibilityDuration >= 0) {
+      const newDuration = Math.max(playerProjectileInvincibilityDuration - delta, 0);
+      player.setData('projectile_invincibility_duration', newDuration);
+      if (newDuration === 0) {
+        player.setData('projectile_invincibility_direction', null);
+      }
+    }
+
+    /** @type {Phaser.Physics.Arcade.Group} */
+    const enemies = this.instance.enemies;
+    enemies.children.each(e => {
+      if (e.getData('uuid') === undefined) {
+        e.setData('uuid', uuidv4());
+      }
+
+      const index = e.getData('uuid');
       /** @type {Phaser.Physics.Arcade.Sprite} */
       if (!this.instance.gridLock.get(`enemy_${index}`)) {
-        /** @type {Phaser.Physics.Arcade.Sprite} */
+        /** @type {Phaser.GameObjects.GameObject} */
         const enemy = e;
+        if (!(enemy instanceof Phaser.Physics.Arcade.Sprite)) {
+          return;
+        }
+
+        // Navigate + line of sight
         const tileEnemyPos = map.worldToTileXY(enemy.x, enemy.y + 16);
         const astar = AStar(collide, tileEnemyPos, tilePlayerPos, { x: boundryPos.x, y: boundryPos.y });
-
         const nextPos = astar.length > 0 ? astar[0] : null;
         const los = this.lineOfSight(enemy, player);
         if (nextPos && los === false) {
@@ -237,6 +293,7 @@ export default class TestLevel extends BaseScene {
             arrow.setScale(0.5);
             arrow.anims.play(`arrow_${los}`, true);
             arrow.setCollideWorldBounds(true);
+            arrow.setData('direction', los);
             projectiles.add(arrow);
 
             if (los === 'right') {
@@ -256,6 +313,34 @@ export default class TestLevel extends BaseScene {
         }
       }
     });
+
+    // collision with the player
+    const attackingDuration = player.getData('attacking_duration');
+    player.setData('attacking_duration', attackingDuration - delta);
+    this.physics.collide(enemies, player, (_, enemy) => {
+      // we're getting it directly cuz we also set it to 0
+      if (player.getData('attacking_duration') > 0) {
+        enemies.remove(enemy, true, true);
+        player.setData('attacking_duration', 0);
+      }
+    });
+  }
+
+  /**
+   * @param {'left' | 'right' | 'up' | 'down'} direction
+   */
+  leftClick (direction) {
+    /** @type {Phaser.Physics.Arcade.Sprite} */
+    const player = this.instance.player;
+    const stamina = player.getData('stamina');
+
+    if (stamina >= 10) {
+      super.leftClick(direction);
+      player.setData('projectile_invincibility_direction', direction);
+      player.setData('projectile_invincibility_duration', 500);
+      player.setData('attacking_duration', 500);
+      player.setData('stamina', stamina - 10);
+    }
   }
 
   /**
