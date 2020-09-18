@@ -23,6 +23,7 @@ export default class BaseScene extends Phaser.Scene {
       game: game,
       gridLock: new Map([]),
       collisionFunction: null,
+      dynamicCollidables: new Map([]),
       movementFunction: new Map([]),
       movementDisabled: 0,
       cursors: null,
@@ -67,6 +68,7 @@ export default class BaseScene extends Phaser.Scene {
     player.setCollideWorldBounds(true);
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
+    player.setSize(32, player.height);
 
     this.anims.create({
       key: 'player_up',
@@ -228,21 +230,25 @@ export default class BaseScene extends Phaser.Scene {
 
     if (direction === 'up') {
       sprite.anims.play(`${animationKey}_up`, true);
+      sprite.setData('direction', 'up');
       this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
         this.updatePosition(sprite, key, sprite.x, sprite.y - ((delta / 1000) * tileMovement)));
     } else if (direction === 'down') {
       sprite.anims.play(`${animationKey}_down`, true);
+      sprite.setData('direction', 'down');
       this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
         this.updatePosition(sprite, key, sprite.x, sprite.y + ((delta / 1000) * tileMovement)));
     } else if (direction === 'left') {
       sprite.anims.play(`${animationKey}_left`, true);
+      sprite.setData('direction', 'left');
       this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
         this.updatePosition(sprite, key, sprite.x - ((delta / 1000) * tileMovement), sprite.y));
     } else if (direction === 'right') {
       sprite.anims.play(`${animationKey}_right`, true);
+      sprite.setData('direction', 'right');
       this.instance.gridLock.set(key, true);
       this.instance.movementFunction.set(key, () =>
         this.updatePosition(sprite, key, sprite.x + ((delta / 1000) * tileMovement), sprite.y));

@@ -80,7 +80,9 @@ export default class TestLevel extends BaseScene {
      * @param {number} y
      */
     this.instance.collisionFunction = (x, y) => {
-      return collisionLayer.hasTileAtWorldXY(x, y);
+      const tileEquivalent = map.worldToTileXY(x, y);
+      return collisionLayer.hasTileAtWorldXY(x, y) ||
+        this.instance.dynamicCollidables.has(`${tileEquivalent.x},${tileEquivalent.y}`);
     };
 
     super.preCreate();
@@ -216,7 +218,7 @@ export default class TestLevel extends BaseScene {
 
     this.physics.overlap(player, projectiles, (_, projectile) => {
       const projectileDirection = projectile.getData('direction');
-      const playerDirection = player.getData('projectile_invincibility_direction');
+      const playerDirection = player.getData('direction');
 
       if (OPPOSITE_DIRECTION[playerDirection] === projectileDirection) {
         // TODO: parry!
@@ -247,10 +249,11 @@ export default class TestLevel extends BaseScene {
       const newDuration = Math.max(playerProjectileInvincibilityDuration - delta, 0);
       player.setData('projectile_invincibility_duration', newDuration);
       if (newDuration === 0) {
-        player.setData('projectile_invincibility_direction', null);
+        player.setData('direction', null);
       }
     }
 
+    this.instance.dynamicCollidables.clear();
     /** @type {Phaser.Physics.Arcade.Group} */
     const enemies = this.instance.enemies;
     enemies.children.each(e => {
@@ -272,6 +275,7 @@ export default class TestLevel extends BaseScene {
         const astar = AStar(collide, tileEnemyPos, tilePlayerPos, { x: boundryPos.x, y: boundryPos.y });
         const nextPos = astar.length > 0 ? astar[0] : null;
         const los = this.lineOfSight(enemy, player);
+        this.instance.dynamicCollidables.set(`${tileEnemyPos.x},${tileEnemyPos.y}`, true);
         if (nextPos && los === false) {
           const xDiffGreater = Math.abs(tileEnemyPos.x - nextPos.x) > Math.abs(tileEnemyPos.y - nextPos.y);
           if (tileEnemyPos.x > nextPos.x && xDiffGreater) {
@@ -317,10 +321,34 @@ export default class TestLevel extends BaseScene {
     // collision with the player
     const attackingDuration = player.getData('attacking_duration');
     player.setData('attacking_duration', attackingDuration - delta);
-    this.physics.collide(enemies, player, (_, enemy) => {
+    this.physics.overlap(enemies, player, (_, enemy) => {
+      if (!(enemy instanceof Phaser.Physics.Arcade.Sprite)) {
+        return;
+      }
+
       // we're getting it directly cuz we also set it to 0
       if (player.getData('attacking_duration') > 0) {
-        enemies.remove(enemy, true, true);
+        const playerDirection = player.getData('direction');
+
+        if (playerDirection === 'up') {
+          if (enemy.x !== player.x || player.y < enemy.y) {
+            return;
+          }
+        } else if (playerDirection === 'down') {
+          if (enemy.x !== player.x || player.y > enemy.y) {
+            return;
+          }
+        } else if (playerDirection === 'left') {
+          if (player.y !== enemy.y || player.x < enemy.x) {
+            return;
+          }
+        } else if (playerDirection === 'right') {
+          if (player.y !== enemy.y || player.x > enemy.x) {
+            return;
+          }
+        }
+
+        enemies.remove(enemy, true, true); // TODO: actually do damage
         player.setData('attacking_duration', 0);
       }
     });
@@ -336,8 +364,8 @@ export default class TestLevel extends BaseScene {
 
     if (stamina >= 10) {
       super.leftClick(direction);
-      player.setData('projectile_invincibility_direction', direction);
       player.setData('projectile_invincibility_duration', 500);
+      player.setData('direction', direction);
       player.setData('attacking_duration', 500);
       player.setData('stamina', stamina - 10);
     }

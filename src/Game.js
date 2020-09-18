@@ -11,7 +11,7 @@ export default class Game {
       physics: {
         default: 'arcade',
         arcade: {
-          debug: false
+          debug: true
         }
       },
       zoom: 1,
