@@ -2,13 +2,11 @@ import BaseScene from './BaseScene';
 import Phaser from 'phaser';
 
 // @ts-ignore
-//import IMGCity1 from '../assets/imgs/city01.png';
-import IMGCity1 from '../assets/imgs/city01_bleed.png';
+import IMGCity1 from '../assets/imgs/city01.png';
 // @ts-ignore
 import IMGCity2 from '../assets/imgs/city02.png';
 // @ts-ignore
-// import IMGForest1 from '../assets/imgs/forest01.png';
-import IMGForest1 from '../assets/imgs/forest01_bleed.png';
+import IMGForest1 from '../assets/imgs/forest01.png';
 // @ts-ignore
 import IMGSkeleton from '../assets/imgs/skeleton.png';
 // @ts-ignore

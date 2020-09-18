@@ -104,7 +104,7 @@
         {
          "columns":37,
          "firstgid":1,
-         "image":"..\/imgs\/city01_bleed.png",
+         "image":"..\/imgs\/city01.png",
          "imageheight":504,
          "imagewidth":666,
          "margin":1,
@@ -130,7 +130,7 @@
         {
          "columns":32,
          "firstgid":3848,
-         "image":"..\/imgs\/forest01_bleed.png",
+         "image":"..\/imgs\/forest01.png",
          "imageheight":576,
          "imagewidth":576,
          "margin":1,
