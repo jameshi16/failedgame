@@ -67,8 +67,6 @@ export default class BaseScene extends Phaser.Scene {
     player.setCollideWorldBounds(true);
     player.setScale(0.5);
     player.setOrigin(0.25, 0.125);
-    player.setPosition(16 * 13, 16 * 3);
-    player.setSize(32, 54);
 
     this.anims.create({
       key: 'player_up',

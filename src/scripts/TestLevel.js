@@ -51,6 +51,9 @@ export default class TestLevel extends BaseScene {
     };
 
     super.preCreate();
+    /** @type {Phaser.Physics.Arcade.Sprite} */
+    const player = this.instance.player;
+    player.setPosition(16 * 13, 16 * 3);
 
     const enemy = this.physics.add.sprite(0, 0, 'player');
     this.instance.enemy = enemy;
