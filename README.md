@@ -2,7 +2,7 @@
 
 FailedGame, a project I worked on for 2 (manhour) weeks, but gave up on.
 
-While you may find worthlessness in this repositories' existence, I took away some lessons that I hope can be useful to someone else in the future - these lessons are documented in [this blog post](https://codingindex.xyz/2020/10/05/failed-game/).
+While you may find worthlessness in this repositories' existence, I took away some lessons that I hope can be useful to someone else in the future - these lessons are documented in [this blog post](https://codingindex.xyz/2020/10/06/failed-game/).
 
 ## Running the project
 
